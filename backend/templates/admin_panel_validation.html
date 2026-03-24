@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel de Validation des Modifications</title>
+</head>
+<body>
+    <h1>Modifications en attente</h1>
+    <p>Total: {{ modifications|length }} modification(s)</p>
+    <ul>
+    {% for mod in modifications %}
+  <!DOCTYPE html>
+<html>
+<head>
+    <title>Panel Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-8 px-4">
+        <h1 class="text-3xl font-bold mb-6">Modifications en attente</h1>
+        
+        {% if not modifications %}
+            <p class="text-gray-600">Aucune modification à valider.</p>
+        {% endif %}
+
+        {% for mod in modifications %}
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-xl font-semibold">Modification #{{ mod.id }}</h2>
+                    <p class="text-gray-600 text-sm">
+                       
+                        Par <span class="font-medium">{{ mod.utilisateur }}</span> • 
+                        {{ mod.date_creation }}
+                    </p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="validateModification('{{ mod.id }}')" 
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                        Valider
+                    </button>
+                    <button onclick="rejectModification('{{ mod.id }}')" 
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                        Rejeter
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-2 px-4 border">Champ</th>
+                            <th class="py-2 px-4 border">Ancienne valeur</th>
+                            <th class="py-2 px-4 border">Nouvelle valeur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in mod.changes %}
+                        <tr>
+                            <td class="py-2 px-4 border">{{ change.field }}</td>
+                            <td class="py-2 px-4 border">{{ change.old }}</td>
+                            <td class="py-2 px-4 border">{{ change.new }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+    async function validateModification(id) {
+    try {
+        const response = await fetch(`/valider_modification/${id}`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert(`Erreur: ${result.detail}`);
+        }
+    } catch (error) {
+        console.error("Erreur:", error);
+        alert("Erreur lors de la validation");
+    }
+}
+
+    async function rejectModification(id) {
+        try {
+            const response = await fetch(`/rejeter-modification/${id}`, { method: 'POST' });
+            if (response.ok) {
+                alert("Rejeté avec succès !");
+                location.reload();
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+        }
+    }
+    </script>
+</body>
+</html>      <li>
+            <strong>ID:</strong> {{ mod.id }}<br>
+            <strong>Utilisateur:</strong> {{ mod.utilisateur }}<br>
+            <strong>Ticket:</strong> {{ mod.numero_ticket }}
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
