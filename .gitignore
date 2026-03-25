@@ -1,64 +1,23 @@
-# OS / editor
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-
-# Environment variables / secrets
+backend/fichiers_reçus
+node_modules
+npm-debug.log
+build
+dist
 .env
-.env.*
-!.env.example
-!.env.*.example
+data_pipeline/.env
+data_pipeline/__pycache__
+data_pipeline/.pytest_cache
+data_pipeline/checkpoint_kafka_json
+data_pipeline/venv
+data_pipeline/docker-compose.yml
+frontend/auth-app/node_modules
+frontend/auth-app/build
+backend/__pycache__
+backend/.pytest_cache
+backend/venv
+backend/.env
+backend/rapp/__pycache__
+backend/auto_import.log
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-.eggs/
-*.egg-info/
-pip-wheel-metadata/
 
-# Python virtual environments
-venv/
-.venv/
-env/
-.envrc
-backend/venv/
-backend/.venv/
-data_pipeline/venv/
-data_pipeline/.venv/
 
-# Node / frontend
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-frontend/auth-app/build/
-frontend/auth-app/.cache/
-
-# Logs
-*.log
-
-# Local runtime / temp files
-tmp/
-temp/
-*.tmp
-
-# Spark / pipeline checkpoints and outputs
-data_pipeline/checkpoint_kafka_json/
-
-# Local uploaded/generated files
-backend/fichiers_re?us/
-
-# Python local tools
-.python-version
