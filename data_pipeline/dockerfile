@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+# Installation de pg_isready pour attendre la DB
+RUN apt-get update && apt-get install -y postgresql-client
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY ingest.py .
+# On lance le script
+CMD ["python", "ingest.py"]

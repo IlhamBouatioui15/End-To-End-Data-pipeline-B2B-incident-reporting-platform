@@ -1,0 +1,254 @@
+/* Styles de base 
+:root {
+    --primary-color: #4a6bff;
+    --text-color: #333;
+    --light-text: #777;
+    --white: #fff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    padding: 20px;
+  }
+  
+  .login-form {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+  
+  .login-form h1 {
+    margin-bottom: 30px;
+    color: var(--text-color);
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: 500;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border 0.3s;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+  
+  .login-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+  }
+  
+  .login-button:hover {
+    background-color: #3a5bef;
+  }
+  .login-image{
+    width: 400px;
+  }
+  .login-image-section{
+
+  }
+
+  @media (max-width: 480px) {
+    .login-form {
+      padding: 30px 20px;
+    }
+  }*/:root {
+  --primary-color: #4a6bff;
+  --gradient-start: #ee7724;
+  --gradient-end: #b44593;
+  --text-color: #333;
+  --light-text: #777;
+  --white: #fff;
+  --light-gray: #f8f9fa;
+  --border-radius: 0.3rem;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: var(--light-gray);
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 185px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+.logoo{
+    width: 400px;
+}
+.welcome-text {
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+}
+
+.login-prompt {
+  color: var(--light-text);
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: border 0.3s ease;
+}
+.logo{
+    width: 400px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.2);
+}
+
+.error-message {
+  color: #d8363a;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.login-button:hover {
+  opacity: 0.9;
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+
+
+
+
+
+
+.gradient-section {
+  flex: 1;
+  background: linear-gradient(to right, var(--gradient-start), #d8363a, #dd3675, var(--gradient-end));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: white;
+}
+
+.gradient-content {
+  max-width: 500px;
+}
+
+.gradient-content h4 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.gradient-content p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+  
+  .gradient-section {
+    display: none;
+  }
+}
+  

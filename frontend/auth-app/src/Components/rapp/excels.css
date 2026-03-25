@@ -1,0 +1,9 @@
+.content-container{
+    margin-left: 200px;
+}
+.btn{
+    margin-top: 20px;
+    margin-left: 1000px;
+    border-radius: 20px;
+    background: orangered;
+}

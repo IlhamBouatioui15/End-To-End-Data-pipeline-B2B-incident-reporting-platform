@@ -1,0 +1,126 @@
+.sidebar-container {
+    display: flex;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    z-index: 1000;
+}
+  
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #2c3e50;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+  .sidebar.collapsed {
+    width: 60px;
+  }
+  
+  .toggle-btn {
+    position: absolute;
+    right: -15px;
+    top: 20px;
+    background: #34495e;
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .logo{
+    width: 50px;
+    margin-top: 12px;
+  }
+  .sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .sidebar-menu {
+    flex: 1;
+    padding: 10px 0;
+    overflow-y: auto;
+  }
+  
+  .menu-item {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .menu-item:hover {
+    background: #34495e;
+  }
+  
+  .menu-item.active {
+    background: #3498db;
+  }
+  .main-content {
+    margin-left: 250px; /* Décale le contenu pour ne pas être sous la sidebar */
+    flex: 1;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+  .icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .submenu {
+    padding-left: 20px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu-item {
+    padding: 8px 20px 8px 40px;
+    cursor: pointer;
+  }
+  
+  .submenu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+  }
+  .sidebar.collapsed + .main-content {
+    margin-left: 60px;
+}
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar {
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        background: #2c3e50; /* Couleur de fond */
+        color: white;
+        width: 100%;
+    }
+    
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+    }
+    
+    .toggle-btn {
+      display: block;
+    }
+  }
