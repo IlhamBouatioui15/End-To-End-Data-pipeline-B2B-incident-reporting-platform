@@ -1,0 +1,12 @@
+tam_dbt:
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      user: postgres
+      password: tam_db
+      port: 5432
+      dbname: brise_db
+      schema: analytics
+      threads: 4
+  target: dev

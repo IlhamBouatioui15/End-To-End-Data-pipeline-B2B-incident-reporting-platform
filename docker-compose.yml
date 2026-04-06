@@ -20,7 +20,21 @@ services:
       retries: 5
     networks:
       - tam_network
-
+  dbt:
+    build:
+      context: .
+      dockerfile: dockerfile.dbt
+    container_name: tam_dbt
+    volumes:
+      - ./data_pipeline/tam_dbt:/usr/app/tam_dbt
+      - ./data_pipeline/profiles.yml:/root/.dbt/profiles.yml
+    environment:
+      - DBT_PROFILES_DIR=/root/.dbt
+    depends_on:
+      - postgres
+    entrypoint: ["tail", "-f", "/dev/null"] 
+    networks:
+      - tam_network
   # --- KAFKA ---
   kafka:
     image: apache/kafka:latest
@@ -153,10 +167,63 @@ services:
       - backend
     networks:
       - tam_network
+  
+  # Base de métadonnées Superset (séparée de ta DB métier)
+  superset-db:
+    image: postgres:15-alpine
+    container_name: tam_superset_db
+    environment:
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: tam__db
+      POSTGRES_DB: superset_meta
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    networks:
+      - tam_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset_meta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  superset:
+    image: apache/superset:3.1.0
+    container_name: tam_superset
+    environment:
+      - SUPERSET_SECRET_KEY=d5fb956be07f6c6956199f8b7718be0524c55e218b2d92919d9ed3514f2bae24
+      - DATABASE_URL=postgresql+psycopg2://superset:tam__db@superset-db:5432/superset_meta
+      - SUPERSET_WEBSERVER_PORT=8088
+    ports:
+      - "8088:8088"
+    depends_on:
+      superset-db:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - tam_network
+    command: >
+      bash -c "
+        pip install psycopg2-binary &&
+        superset db upgrade &&
+        superset fab create-admin
+          --username admin
+          --firstname Admin
+          --lastname TAM
+          --email tamtest67@gmail.com
+          --password admin123 || true &&
+        superset init &&
+        superset run -h 0.0.0.0 -p 8088 --with-threads
+      "
 
 volumes:
   postgres_data:
   frontend_data:
+  superset_db_data:   
+  superset_home:
 
 networks:
   tam_network:

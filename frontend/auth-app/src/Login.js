@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
-import GIFORANGE  from "./GIFORANGE3.gif"
-
+import GIFORANGE from "./GIFORANGE3.gif"
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -57,68 +56,86 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-form-container">
-        <div className="login-form">
-          <div className="logo-container">
-       
-          <img src={GIFORANGE} alt="logo" className="logoo" />
-           
+    <div className="login-root">
+
+      {/* Left Panel */}
+      <div className="login-left-panel">
+        <div className="left-logo-container">
+          <div className="crown-icon">
+            {/* Using the user's logo precisely placed like the crown in the image */}
+            <img src={GIFORANGE} alt="Orange Maroc logo" />
           </div>
+        </div>
 
-          <p className="login-prompt">Please login to your account</p>
+        <div className="left-text-content">
+          <h2 className="greeting-text">Bienvenue !</h2>
+          <h1 className="main-platform-text">
+            PLATEFORME<br />
+            B2B INCIDENTS
+          </h1>
+        </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="username">Username</label>
+        {/* Decorative Mountain/Wave Bottom */}
+        <div className="left-waves">
+          <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
+            {/* The SVG replicates the dark mountain peaks at the bottom, tinted in Orange / Dark Orange matching exact prompt */}
+            <path fill="#FF7900" fillOpacity="0.4" d="M0,160L80,170.7C160,181,320,203,480,181.3C640,160,800,96,960,96C1120,96,1280,160,1360,192L1440,224L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+            <path fill="#FF7900" fillOpacity="0.8" d="M0,256L80,245.3C160,235,320,213,480,218.7C640,224,800,256,960,245.3C1120,235,1280,181,1360,154.7L1440,128L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+          </svg>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="login-right-panel">
+        <div className="top-right-decoration">
+          <div className="arc-circle"></div>
+        </div>
+
+        <div className="form-container">
+          <h2 className="form-title">Connexion</h2>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="input-field-group">
+              <label htmlFor="username">Nom d'utilisateur</label>
               <input
                 type="text"
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="form-input"
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
+            <div className="input-field-group">
+              <label htmlFor="password">Mot de passe</label>
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="form-input"
               />
             </div>
 
-            {error && <div className="error-message">{error}</div>}
+            {error && (
+              <div className="error-message">
+                <span>{error}</span>
+              </div>
+            )}
 
-            <button 
-              type="submit" 
-              className="login-button"
-              disabled={loading}
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-
-           
+            <div className="btn-container">
+              <button
+                type="submit"
+                className={`login-btn ${loading ? 'loading' : ''}`}
+                disabled={loading}
+              >
+                {loading ? 'Connexion en cours...' : 'Se connecter'}
+              </button>
+            </div>
           </form>
 
-          
+
         </div>
       </div>
 
-      <div className="gradient-section">
-        <div className="gradient-content">
-          <h2>Welcome Back</h2>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-           
-      {/* Icônes sociales */}
-      <div className="social-icons">
-     
-      </div>
-        </div>
-      </div>
     </div>
   );
 }

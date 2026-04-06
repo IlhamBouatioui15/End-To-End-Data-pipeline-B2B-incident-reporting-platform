@@ -1,254 +1,291 @@
-/* Styles de base 
+/* Login.css - Splitscreen Image Recreation */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
 :root {
-    --primary-color: #4a6bff;
-    --text-color: #333;
-    --light-text: #777;
-    --white: #fff;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-  
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f8f9fa;
-    padding: 20px;
-  }
-  
-  .login-form {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    background-color: var(--white);
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-  }
-  
-  .login-form h1 {
-    margin-bottom: 30px;
-    color: var(--text-color);
-    text-align: center;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-color);
-    font-weight: 500;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: border 0.3s;
-  }
-  
-  .form-group input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-  
-  .login-button {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    background-color: var(--primary-color);
-    color: var(--white);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 10px;
-  }
-  
-  .login-button:hover {
-    background-color: #3a5bef;
-  }
-  .login-image{
-    width: 400px;
-  }
-  .login-image-section{
-
-  }
-
-  @media (max-width: 480px) {
-    .login-form {
-      padding: 30px 20px;
-    }
-  }*/:root {
-  --primary-color: #4a6bff;
-  --gradient-start: #ee7724;
-  --gradient-end: #b44593;
-  --text-color: #333;
-  --light-text: #777;
-  --white: #fff;
-  --light-gray: #f8f9fa;
-  --border-radius: 0.3rem;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --orange: #FF7900;
+  --orange-dark: #E66800;
+  --black-bg: #111111;
+  --text-dark: #222222;
+  --text-gray: #777777;
+  --border-color: #E0E0E0;
+  --font-main: 'Poppins', sans-serif;
 }
 
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+body {
+  font-family: var(--font-main);
+  background-color: #FFFFFF;
+}
 
-.login-container {
+/* Base Layout */
+.login-root {
   display: flex;
   min-height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
-.login-form-container {
-  flex: 1;
+/* LEFT PANEL */
+.login-left-panel {
+  flex: 0 0 45%;
+  background-color: var(--black-bg);
+  background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  overflow: hidden;
+}
+
+/* Matches the Crown positioning relative inside absolute container */
+.left-logo-container {
+  position: absolute;
+  top: 3rem;
+  left: 3rem;
+  width: 110px;
+  height: 110px;
+  background-color: #222222;
+  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
-  background-color: var(--light-gray);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10;
 }
 
-.login-form {
+.crown-icon img {
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+}
+
+.left-text-content {
+  position: relative;
+  z-index: 10;
+  color: #FFFFFF;
+  margin-top: -10vh;
+}
+
+.greeting-text {
+  font-size: 2.25rem;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.5px;
+}
+
+.main-platform-text {
+  font-size: 3.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #FFFFFF;
+}
+
+/* Stardust/glow shapes */
+.left-text-content::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -20px;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 120px 30px white, 200px 180px white, 50px 220px white;
+    opacity: 0.3;
+}
+
+.left-waves {
+  position: absolute;
+  bottom: -5px; /* Ensures wave is exactly hugging the floor border */
+  left: 0;
   width: 100%;
-  max-width: 400px;
+  z-index: 1;
 }
 
-.logo-container {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.logo {
-  width: 185px;
-  height: auto;
-  margin-bottom: 1rem;
-}
-.logoo{
-    width: 400px;
-}
-.welcome-text {
-  color: var(--text-color);
-  margin-bottom: 1.5rem;
-}
-
-.login-prompt {
-  color: var(--light-text);
-  margin-bottom: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
+.left-waves svg {
   display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
+  width: 100%;
+  height: auto;
+}
+
+/* RIGHT PANEL */
+.login-right-panel {
+  flex: 0 0 55%;
+  background-color: #FFFFFF;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Decorative arc top-right */
+.top-right-decoration {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+}
+
+.arc-circle {
+  width: 200px;
+  height: 200px;
+  background-color: transparent;
+  border: 15px solid var(--text-dark); /* Using dark color per Orange styling */
+  border-radius: 50%;
+  position: absolute;
+  top: -100px;
+  right: -100px;
+}
+
+/* Form Container */
+.form-container {
+  width: 100%;
+  max-width: 380px;
+  padding: 2rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-title {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--text-dark); 
+  margin-bottom: 3rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-field-group label {
+  font-size: 0.85rem;
+  color: var(--text-gray);
   font-weight: 500;
 }
 
-.form-input {
+.input-field-group input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius);
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* Rounded corners */
   font-size: 1rem;
-  transition: border 0.3s ease;
-}
-.logo{
-    width: 400px;
+  font-family: inherit;
+  color: var(--text-dark);
+  transition: border-color 0.2s;
 }
 
-.form-input:focus {
+.input-field-group input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.2);
+  border-color: var(--orange);
 }
 
 .error-message {
-  color: #d8363a;
-  margin-bottom: 1rem;
+  color: #D32F2F;
+  font-size: 0.85rem;
   text-align: center;
+  background-color: #FFEBEE;
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 
-.login-button {
-  width: 100%;
-  padding: 0.75rem;
-  margin: 1rem 0;
-  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
-  color: var(--white);
+.btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.login-btn {
+  background-color: var(--orange);
+  color: white;
   border: none;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
+  border-radius: 8px; 
+  padding: 0.85rem 3.5rem; /* Specific horizontal padding for the pill center style */
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.3s ease;
+  transition: background-color 0.2s;
+  font-family: inherit;
+  width: auto; /* Not 100% full width, pill shaped */
+  min-width: 160px;
 }
 
-.login-button:hover {
-  opacity: 0.9;
+.login-btn:hover:not(:disabled) {
+  background-color: var(--orange-dark);
 }
 
-.login-button:disabled {
+.login-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-
-
-
-
-
-
-.gradient-section {
-  flex: 1;
-  background: linear-gradient(to right, var(--gradient-start), #d8363a, #dd3675, var(--gradient-end));
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  color: white;
+.create-account-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
 }
 
-.gradient-content {
-  max-width: 500px;
+.create-account-text a {
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.gradient-content h4 {
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-}
-
-.gradient-content p {
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-@media (max-width: 768px) {
-  .login-container {
+/* Responsiveness */
+@media (max-width: 900px) {
+  .login-root {
     flex-direction: column;
   }
-  
-  .gradient-section {
+  .login-left-panel {
+    flex: 0 0 300px;
+    padding: 2rem;
+  }
+  .left-logo-container {
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+  .greeting-text {
+    font-size: 2rem;
+  }
+  .main-platform-text {
+    font-size: 2.5rem;
+  }
+  .login-right-panel {
+    flex: 1;
+    padding: 2rem 1rem;
+  }
+  .top-right-decoration {
     display: none;
   }
+  .create-account-text {
+    position: relative;
+    bottom: auto;
+    margin-top: 4rem;
+  }
 }
-  

@@ -347,7 +347,7 @@ export default function Excel() {
 
       const cover = pptx.addSlide();
       cover.background = { color: 'F4F4F4' };
-      addSlideChrome(cover, 'Orange Business - Rapport Incident Ticketing', SHAPE);
+      addSlideChrome(cover, 'Orange Maroc - Rapport Incident ', SHAPE);
       addPremiumFrame(cover, SHAPE);
 
       cover.addShape(SHAPE.rect, {
@@ -359,7 +359,7 @@ export default function Excel() {
         line: { color: 'FF7900' },
       });
 
-      cover.addText('RAPPORT DES INCIDENTS TICKETING', {
+      cover.addText('RAPPORT DES INCIDENTS ', {
         x: 0.75,
         y: 3.15,
         w: 8.5,
@@ -569,7 +569,7 @@ export default function Excel() {
         >
           <div>
             <div style={{ color: OG.orange, fontWeight: 800, fontSize: '18px' }}>TABLEAU DE BORD INCIDENTS TICKETING</div>
-            <div style={{ color: OG.gray3, fontSize: '12px' }}>Orange Business Services | Rapport exploitation B2B</div>
+            <div style={{ color: OG.gray3, fontSize: '12px' }}>Orange Maroc Services | Rapport exploitation B2B</div>
           </div>
           {clientLabel && (
             <div style={{ background: OG.orange, color: OG.white, borderRadius: '7px', padding: '6px 12px', fontWeight: 800, fontSize: '13px' }}>{clientLabel}</div>
@@ -603,7 +603,7 @@ export default function Excel() {
                   cursor: isGenerating ? 'not-allowed' : 'pointer',
                 }}
               >
-                {isGenerating ? 'Generation...' : 'Exporter PPT premium editable'}
+                {isGenerating ? 'Generation...' : 'Exporter Rapport PPT '}
               </button>
             )}
           </div>

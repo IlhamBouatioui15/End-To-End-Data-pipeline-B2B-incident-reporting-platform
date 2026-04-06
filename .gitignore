@@ -1,11 +1,11 @@
-backend/fichiers_reçus
+
 node_modules
 npm-debug.log
 build
 dist
-.env
+
 data_pipeline/.env
-data_pipeline/__pycache__
+
 data_pipeline/.pytest_cache
 data_pipeline/checkpoint_kafka_json
 data_pipeline/venv
@@ -16,8 +16,15 @@ backend/__pycache__
 backend/.pytest_cache
 backend/venv
 backend/.env
-backend/rapp/__pycache__
-backend/auto_import.log
+# Python bytecode
+**/__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Environment files
+.env
 
 
 

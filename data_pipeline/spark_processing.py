@@ -99,61 +99,6 @@ spark = SparkSession.builder.appName("KafkaToPostgresSafe") \
     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.7.2") \
     .getOrCreate()
 
-'''def initialize_postgres_table():
-    """Crée la table avec PRIMARY KEY automatiquement"""
-    create_sql = f"""
-    CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE} (
-        numero_ticket VARCHAR(255) PRIMARY KEY,
-        etat VARCHAR(100),
-        date_debut_ticket TIMESTAMP,
-        date_creation TIMESTAMP,
-        date_retablissement TIMESTAMP,
-        date_cloture TIMESTAMP,
-        description TEXT,
-        id VARCHAR(100),
-        client VARCHAR(255),
-        site_client VARCHAR(255),
-        categ VARCHAR(100),
-        criticite VARCHAR(50),
-        week_creation INTEGER,
-        year_creation INTEGER,
-        week_cloture INTEGER,
-        year_cloture INTEGER,
-        service VARCHAR(255),
-        detail_service VARCHAR(255),
-        niveau_resolution VARCHAR(100),
-        duree_traitement_mn_oceane DOUBLE PRECISION,
-        duree_traitement_mn_global DOUBLE PRECISION,
-        duree_retablissement_mn DOUBLE PRECISION,
-        duree_gel_mn DOUBLE PRECISION,
-        gtr_respectee VARCHAR(50),
-        cause_retard_gtr TEXT,
-        action_resolution TEXT,
-        famille_probleme VARCHAR(255),
-        detail_probleme TEXT,
-        acces_last_mile VARCHAR(255),
-        rsp VARCHAR(255),
-        site_client_corresp_local_2 VARCHAR(255),
-        dms VARCHAR(255),
-        type_produit VARCHAR(255),
-        type_ticket VARCHAR(100),
-        engagement VARCHAR(255),
-        source_file VARCHAR(255),
-        ingestion_timestamp TIMESTAMP
-    );
-    """
-    try:
-        conn = spark._jvm.java.sql.DriverManager.getConnection(POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD)
-        stmt = conn.createStatement()
-        stmt.execute(create_sql)
-        stmt.close()
-        conn.close()
-        print("🚀 Table PostgreSQL initialisée avec succès.")
-    except Exception as e:
-        print(f"⚠️ Erreur initialisation table: {e}")
-
-initialize_postgres_table()'''
-
 # --- 4. LECTURE ---
 kafka_stream = spark.readStream.format("kafka") \
     .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVERS) \
@@ -196,40 +141,6 @@ final_df = json_df.filter(F.trim(F.col("etat")) == "Clos").select(
 )
 
 # --- 6. ÉCRITURE JDBC AVEC GESTION DES DOUBLONS ---
-'''def write_to_postgres(batch_df, batch_id):
-    batch_df.cache()
-    # On retire les doublons au sein du batch lui-même
-    clean_df = batch_df.filter(F.col("numero_ticket").isNotNull()).dropDuplicates(["numero_ticket"])
-    count = clean_df.count()
-
-    if count > 0:
-        staging_table = f"staging_batch_{batch_id}"
-        try:
-            print(f"📦 Batch {batch_id}: Traitement de {count} lignes...")
-            
-            # Écriture dans une table temporaire staging
-            clean_df.write \
-                .mode("overwrite") \
-                .jdbc(url=POSTGRES_URL, table=staging_table, 
-                      properties={"user": POSTGRES_USER, "password": POSTGRES_PASSWORD, "driver": "org.postgresql.Driver"})
-
-            # Fusion vers la table principale (ON CONFLICT DO NOTHING)
-            conn = spark._jvm.java.sql.DriverManager.getConnection(POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD)
-            stmt = conn.createStatement()
-            upsert_sql = f"""
-                INSERT INTO {POSTGRES_TABLE} 
-                SELECT * FROM {staging_table}
-                ON CONFLICT (numero_ticket) DO NOTHING;
-            """
-            stmt.execute(upsert_sql)
-            stmt.execute(f"DROP TABLE IF EXISTS {staging_table}")
-            stmt.close()
-            conn.close()
-            print(f"✅ Batch {batch_id} terminé.")
-        except Exception as e:
-            print(f"❌ Erreur Batch {batch_id}: {e}")
-
-    batch_df.unpersist()'''
 def write_to_postgres(batch_df, batch_id):
     batch_df.cache()
     # AFFICHER LES DONNÉES DANS LES LOGS POUR DEBUGGER
