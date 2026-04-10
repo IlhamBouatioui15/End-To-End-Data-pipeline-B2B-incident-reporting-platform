@@ -1,15 +1,9 @@
-/* Login.css - Splitscreen Image Recreation */
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
 :root {
   --orange: #FF7900;
   --orange-dark: #E66800;
-  --black-bg: #111111;
   --text-dark: #222222;
   --text-gray: #777777;
   --border-color: #E0E0E0;
-  --font-main: 'Poppins', sans-serif;
 }
 
 * {
@@ -19,7 +13,7 @@
 }
 
 body {
-  font-family: var(--font-main);
+  margin: 0;
   background-color: #FFFFFF;
 }
 

@@ -1,5 +1,48 @@
 version: '3.8'
 
+# ==============================================================
+# VARIABLES D'ENVIRONNEMENT REQUISES (.env à la racine) :
+#   DB_USER, DB_PASSWORD, DB_NAME, DB_PORT
+#   JWT_SECRET_KEY, BASE_URL, BACKEND_PORT
+#   AIRFLOW_UID (ex: 50000)
+# ==============================================================
+ 
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.0
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+    # --- CONFIGURATION EMAIL (SMTP) ---
+    AIRFLOW__SMTP__SMTP_HOST: smtp.gmail.com
+    AIRFLOW__SMTP__SMTP_STARTTLS: 'true'
+    AIRFLOW__SMTP__SMTP_SSL: 'false'
+    AIRFLOW__SMTP__SMTP_USER: ${SMTP_USER:-tamtest67@gmail.com}
+    AIRFLOW__SMTP__SMTP_PASSWORD: ${SMTP_PASSWORD}
+    AIRFLOW__SMTP__SMTP_PORT: 587
+    AIRFLOW__SMTP__SMTP_MAIL_FROM: ${SMTP_USER:-tamtest67@gmail.com}
+    # Permet à Airflow de lancer des conteneurs Docker
+    DOCKER_HOST: unix:///var/run/docker.sock
+    # Variables pour que les DAGs connaissent les services
+    KAFKA_SERVER: kafka:29092
+    DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-tam_db}@postgres:5432/${DB_NAME:-brise_db}
+    MINIO_ENDPOINT: http://minio:9000
+  volumes:
+    - ./data_pipeline/airflow/dags:/opt/airflow/dags          # Tes DAGs Python
+    - ./data_pipeline/airflow/logs:/opt/airflow/logs          # Logs des exécutions
+    - ./data_pipeline/airflow/plugins:/opt/airflow/plugins    # Plugins custom
+    - /var/run/docker.sock:/var/run/docker.sock # Accès Docker
+  user: "0:0"
+  depends_on:
+    airflow-db:
+      condition: service_healthy
+  networks:
+    - tam_network
+
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -68,6 +111,82 @@ services:
     networks:
       - tam_network
   
+  # ============================================================
+  # BASE DE DONNÉES DÉDIÉE À AIRFLOW (séparée de ta DB métier)
+  # ============================================================
+ 
+  airflow-db:
+    image: postgres:15-alpine
+    container_name: tam_airflow_db
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tam_network
+ 
+  # ============================================================
+  # AIRFLOW — Initialisation (tourne une seule fois au démarrage)
+  # ============================================================
+ 
+  airflow-init:
+    <<: *airflow-common
+    container_name: tam_airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db init
+        airflow users create \
+          --username admin \
+          --firstname Admin \
+          --lastname TAM \
+          --role Admin \
+          --email tamtest67@gmail.com \
+          --password admin123
+    restart: "no"
+ 
+  # ============================================================
+  # AIRFLOW — Scheduler (le moteur qui déclenche les DAGs)
+  # ============================================================
+ 
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: tam_airflow_scheduler
+    command: scheduler
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+ 
+  # ============================================================
+  # AIRFLOW — Interface web (accessible sur localhost:8888)
+  # ============================================================
+ 
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: tam_airflow_webserver
+    command: webserver
+    ports:
+      - "8888:8080"
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
   ingest:
     build:
       context: ./data_pipeline
@@ -149,6 +268,8 @@ services:
       BASE_URL: ${BASE_URL:-http://localhost:8000}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - frontend_data:/app/frontend/build 
     depends_on:
       postgres:
         condition: service_healthy
@@ -224,6 +345,7 @@ volumes:
   frontend_data:
   superset_db_data:   
   superset_home:
+  airflow_db_data:
 
 networks:
   tam_network:

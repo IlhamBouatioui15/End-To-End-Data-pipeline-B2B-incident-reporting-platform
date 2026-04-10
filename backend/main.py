@@ -896,11 +896,15 @@ def extract_excel(
 
 # 1. Définir le chemin vers le build du frontend
 # Dans votre Dockerfile, le build est dans /app/frontend/build
-# Votre main.py est dans /app/backend, donc le chemin relatif est ../frontend/build
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
-# 2. Servir les fichiers statiques (JS, CSS, images)
+frontend_path = "/app/frontend/build"
+
 if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
+    static_path = os.path.join(frontend_path, "static")
+    if os.path.exists(static_path):
+        app.mount("/static", StaticFiles(directory=static_path), name="static")
+        print(f"✅ Frontend static files mounted from {static_path}")
+    else:
+        print(f"⚠️ Warning: Static directory not found at {static_path}")
 
     # 3. Route pour servir l'index.html de React sur toutes les autres routes
     @app.get("/{catchall:path}")
@@ -910,6 +914,8 @@ if os.path.exists(frontend_path):
             return None 
         
         index_file = os.path.join(frontend_path, "index.html")
-        return FileResponse(index_file)
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return JSONResponse({"detail": "Frontend not built yet"}, status_code=404)
 else:
     print(f"⚠️ Erreur: Le dossier frontend n'a pas été trouvé à l'adresse : {frontend_path}")

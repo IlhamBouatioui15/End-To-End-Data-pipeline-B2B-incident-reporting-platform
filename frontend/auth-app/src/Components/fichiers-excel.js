@@ -1,116 +1,121 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Bar from './Bar';
+import '../fichiers-excels.css';
 
 const ExcelPage = () => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({});
 
   useEffect(() => {
+    // Appel API pour récupérer les données brutes
     fetch('http://127.0.0.1:8000/raw-data')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error("Réponse réseau non OK");
+        return response.json();
+      })
       .then(res => {
-        setData(res.data);
-        setColumns(res.columns);
+        // Sécurisation des données reçues
+        setData(res.data || []);
+        setColumns(res.columns || []);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Erreur:", err);
+        console.error("Erreur lors de la récupération des données:", err);
         setLoading(false);
       });
   }, []);
 
-  // --- STYLES POUR REMPLIR TOUTE LA PAGE ---
-  const pageContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh', // Toute la hauteur de l'écran
-    overflow: 'hidden', // Empêche le scroll sur la page entière
+  // Gestion du changement de filtre pour une colonne spécifique
+  const handleFilterChange = (col, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [col]: value
+    }));
   };
 
-  const mainAreaStyle = {
-    marginLeft: '250px', // Espace pour votre barre latérale
-    flex: 1, // Prend tout l'espace restant verticalement
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '0 20px 20px 20px',
-    backgroundColor: '#f8f9fa'
-  };
-
-  const tableWrapperStyle = {
-    flex: 1, // Fait descendre le conteneur jusqu'en bas
-    overflow: 'auto', // Active le scroll interne (horizontal et vertical)
-    backgroundColor: 'white',
-    border: '1px solid #ccc',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-  };
-
-  const tableStyle = {
-    width: 'max-content',
-    minWidth: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '11px',
-    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-  };
-
-  const headerStyle = {
-    backgroundColor: '#e2e2e2',
-    position: 'sticky',
-    top: 0, // L'en-tête reste en haut lors du scroll
-    zIndex: 10,
-    padding: '6px 8px',
-    border: '1px solid #ccc',
-    whiteSpace: 'nowrap',
-    textAlign: 'left'
-  };
-
-  const cellStyle = {
-    padding: '4px 8px',
-    border: '1px solid #eee',
-    whiteSpace: 'nowrap',
-    lineHeight: '1.2'
-  };
+  // Filtrage des données mémorisé pour optimiser les performances
+  const filteredData = useMemo(() => {
+    if (!data.length) return [];
+    
+    return data.filter(row => {
+      return columns.every(col => {
+        const filterValue = filters[col];
+        if (!filterValue) return true;
+        
+        const cellValue = row[col] !== null && row[col] !== undefined 
+          ? String(row[col]).toLowerCase() 
+          : "";
+          
+        return cellValue.includes(filterValue.toLowerCase());
+      });
+    });
+  }, [data, columns, filters]);
 
   return (
-    <div style={pageContainerStyle}>
-      <header><Bar /></header>
+    <div className="excel-page">
+      <Bar />
       
-      <main style={mainAreaStyle}>
-        <h2 style={{ margin: '15px 0', fontSize: '20px', color: '#333' }}>
-          Fichier Excel Collaboratif
-        </h2>
+      <main className="excel-main main-content">
+        <header className="excel-header-section">
+          <h2>Fichier Excel Collaboratif</h2>
+        </header>
         
-        {loading ? (
-          <div style={{ padding: '20px' }}>Chargement des données...</div>
-        ) : (
-          <div style={tableWrapperStyle}>
-            <table style={tableStyle}>
-              <thead>
-                <tr>
-                  {columns.map((col) => (
-                    <th key={col} style={headerStyle}>{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((row, index) => (
-                  <tr 
-                    key={index} 
-                    style={{ backgroundColor: index % 2 === 0 ? '#fff' : '#fcfcfc' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f7ff'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fff' : '#fcfcfc'}
-                  >
+        <div className="table-container">
+          {loading ? (
+            <div className="loading-overlay">
+              <div className="spinner"></div>
+              <p>Chargement des données en cours...</p>
+            </div>
+          ) : data.length === 0 ? (
+            <div className="empty-state">
+              <p>Aucune donnée n'a pu être chargée. Vérifiez votre connexion au serveur.</p>
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table className="premium-table">
+                <thead>
+                  <tr>
                     {columns.map((col) => (
-                      <td key={col} style={cellStyle}>
-                        {row[col] !== null ? String(row[col]) : ""}
-                      </td>
+                      <th key={col}>
+                        <div className="header-label">{col}</div>
+                        <div className="filter-wrapper">
+                          <input
+                            type="text"
+                            className="filter-input"
+                            placeholder={`Filtrer...`}
+                            value={filters[col] || ''}
+                            onChange={(e) => handleFilterChange(col, e.target.value)}
+                          />
+                        </div>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((row, index) => (
+                      <tr key={index}>
+                        {columns.map((col) => (
+                          <td key={col}>
+                            {row[col] !== null && row[col] !== undefined ? String(row[col]) : ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={columns.length} className="empty-state">
+                        Aucun résultat ne correspond à vos filtres.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

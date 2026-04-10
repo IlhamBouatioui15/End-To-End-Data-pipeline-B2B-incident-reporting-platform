@@ -7,8 +7,9 @@ with date_spine as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['date_day']) }} as dim_date_id,
+    date_day::date                                        as dim_date_id,
     date_day::date                                        as date_complete,  -- cast explicite
+
     extract(day     from date_day)::int                   as jour,
     extract(month   from date_day)::int                   as mois,
     extract(year    from date_day)::int                   as annee,

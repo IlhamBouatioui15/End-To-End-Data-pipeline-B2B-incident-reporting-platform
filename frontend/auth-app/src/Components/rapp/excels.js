@@ -74,10 +74,10 @@ const FALLBACK_COLORS = ['FF7900', 'CC5C00', 'F16E00', 'FF9E44', 'FFCC88', 'E65C
 const isChartData = (payload) =>
   Boolean(
     payload &&
-      Array.isArray(payload.labels) &&
-      payload.labels.length > 0 &&
-      Array.isArray(payload.datasets) &&
-      payload.datasets.length > 0
+    Array.isArray(payload.labels) &&
+    payload.labels.length > 0 &&
+    Array.isArray(payload.datasets) &&
+    payload.datasets.length > 0
   );
 
 const tableText = (value) => {
@@ -431,9 +431,9 @@ export default function Excel() {
         const slots =
           layout === 'double'
             ? [
-                { x: 0.4, y: 1.0, w: 6.0, h: 3.8, cx: 0.4, cy: 5.0, cw: 6.0 },
-                { x: 6.8, y: 1.0, w: 6.0, h: 3.8, cx: 6.8, cy: 5.0, cw: 6.0 },
-              ]
+              { x: 0.4, y: 1.0, w: 6.0, h: 3.8, cx: 0.4, cy: 5.0, cw: 6.0 },
+              { x: 6.8, y: 1.0, w: 6.0, h: 3.8, cx: 6.8, cy: 5.0, cw: 6.0 },
+            ]
             : [{ x: 0.4, y: 1.0, w: 12.4, h: 4.3, cx: 0.4, cy: 5.5, cw: 12.4 }];
 
         graphNames.forEach((graphKey, index) => {
@@ -711,8 +711,8 @@ export default function Excel() {
         {!hasContent && !isLoading && !loadError && (
           <div style={{ textAlign: 'center', color: OG.gray3, padding: '48px 20px' }}>
             <div style={{ color: OG.orange, fontSize: '34px', fontWeight: 800 }}>PPT</div>
-            <div style={{ color: OG.black, fontSize: '18px', fontWeight: 700, marginTop: '8px' }}>Aucune donnee chargee</div>
-            <div style={{ fontSize: '14px', marginTop: '8px' }}>Importez un fichier Excel pour afficher les graphiques et generer le rapport.</div>
+            <div style={{ color: OG.black, fontSize: '18px', fontWeight: 700, marginTop: '8px' }}>Aucune donnée filtrée</div>
+            <div style={{ fontSize: '14px', marginTop: '8px' }}>Filtrez les données pour afficher les graphiques et générer le rapport.</div>
           </div>
         )}
       </main>

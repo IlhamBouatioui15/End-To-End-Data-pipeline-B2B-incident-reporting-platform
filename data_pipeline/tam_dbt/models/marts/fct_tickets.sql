@@ -16,8 +16,9 @@ select
     {{ dbt_utils.generate_surrogate_key(['niveau_resolution', 'gtr_respectee', 'cause_retard_gtr', 'action_resolution', 'acces_last_mile']) }} as dim_resolution_id,
 
     -- FK dates (clé = la date elle-même, pas un hash)
-    date_creation::date      as date_creation_id,
+    date_creation::date      as dim_date_creation_id,
     date_debut_ticket::date  as date_debut_ticket_id,
+
     date_cloture::date       as date_cloture_id,
     date_retablissement::date as date_retablissement_id,
     dms::date                as date_dms_id,

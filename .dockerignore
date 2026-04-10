@@ -26,3 +26,10 @@ backend/.pytest_cache
 .editorconfig
 README.md
 Rapports
+**/airflow/
+**/logs/
+data_pipeline/checkpoint_kafka_json/
+*.log
+.git
+.idea
+.vscode

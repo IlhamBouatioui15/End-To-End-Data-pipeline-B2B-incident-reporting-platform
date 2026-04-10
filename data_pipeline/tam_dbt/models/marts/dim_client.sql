@@ -1,11 +1,12 @@
 with stg as (
-    select distinct
+    select
         client,
         site_client,
         categ,
         rsp,
         site_client_corresp_local_2
     from {{ ref('stg_tickets') }}
+    group by 1, 2
 )
 
 select

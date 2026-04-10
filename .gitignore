@@ -1,30 +1,55 @@
+# Gitignore - Senior Configuration for Tam-App
 
-node_modules
-npm-debug.log
-build
-dist
+# Dependency directories
+node_modules/
+frontend/auth-app/node_modules/
+data_pipeline/venv/
+backend/venv/
 
+# Build artifacts
+build/
+dist/
+frontend/auth-app/build/
+data_pipeline/tam_dbt/target/
+data_pipeline/tam_dbt/dbt_packages/
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
 data_pipeline/.env
-
-data_pipeline/.pytest_cache
-data_pipeline/checkpoint_kafka_json
-data_pipeline/venv
-data_pipeline/docker-compose.yml
-frontend/auth-app/node_modules
-frontend/auth-app/build
-backend/__pycache__
-backend/.pytest_cache
-backend/venv
 backend/.env
-# Python bytecode
+
+# Python
+__pycache__/
 **/__pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+backend/.pytest_cache/
+data_pipeline/.pytest_cache/
 
 # Logs
 *.log
+**/logs/
+data_pipeline/airflow/logs/
+airflow/logs/
 
-# Environment files
-.env
+# DBT specific
+data_pipeline/tam_dbt/logs/
 
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
 
+# Data and Checkpoints
+data_pipeline/checkpoint_kafka_json/
+postgres_data/
+airflow_db_data/
+frontend_data/
 
+# Docker
+.docker
+docker-compose.override.yml

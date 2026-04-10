@@ -1,1 +1,212 @@
-h2{}
+/* fichiers-excels.css - Premium Modern Table - Senior Light Edition */
+
+:root {
+    --excel-bg: #f8fafc;
+    --excel-card-bg: #ffffff;
+    --excel-border: #e2e8f0;
+    --excel-text: #1e293b;
+    --excel-text-muted: #64748b;
+    --excel-header-bg: #f1f5f9;
+}
+
+.excel-page {
+    display: flex;
+    background-color: var(--excel-bg);
+    min-height: 100vh;
+}
+
+.excel-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; 
+    padding: 0;
+    transition: var(--transition-normal);
+    box-sizing: border-box;
+}
+
+/* Header Section */
+.excel-header-section {
+    padding: 30px 40px;
+    background-color: var(--excel-card-bg);
+    border-bottom: 1px solid var(--excel-border);
+    flex-shrink: 0;
+}
+
+.excel-header-section h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--excel-text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: -0.02em;
+}
+
+.excel-header-section h2::before {
+    content: '';
+    width: 3px;
+    height: 24px;
+    background: var(--orange);
+    border-radius: 2px;
+}
+
+/* Table Container - Removed the black background */
+.table-container {
+    flex: 1;
+    margin: 24px 40px 40px 40px;
+    background: var(--excel-card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--excel-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow: auto;
+}
+
+/* Custom Scrollbar - Minimalist */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Table Style */
+.premium-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+    color: var(--excel-text);
+}
+
+.premium-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.premium-table th {
+    background: var(--excel-header-bg);
+    padding: 16px 24px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--excel-text);
+    border-bottom: 1px solid var(--excel-border);
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Filter Section */
+.filter-wrapper {
+    margin-top: 12px;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--excel-card-bg);
+    border: 1px solid var(--excel-border);
+    border-radius: 6px;
+    color: var(--excel-text);
+    font-size: 0.8rem;
+    font-family: inherit;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+}
+
+.filter-input::placeholder {
+    color: var(--excel-text-muted);
+}
+
+/* Body Styles */
+.premium-table td {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--excel-border);
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+    color: var(--excel-text-muted);
+}
+
+.premium-table tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+.premium-table tbody tr:hover td {
+    color: var(--excel-text);
+}
+
+/* Empty/Loading States */
+.loading-overlay, .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    color: var(--excel-text-muted);
+    background: var(--excel-card-bg);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid var(--orange);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Sidebar Integration & Specificity Overrides */
+.excel-main.main-content {
+    margin-left: 260px;
+    background-color: var(--excel-bg) !important; /* Force l'écrasement du fond noir de Bar.css */
+    padding: 0; /* On gère le padding via excel-header-section et table-container */
+}
+
+@media (max-width: 1024px) {
+    .excel-main.main-content {
+        margin-left: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .excel-main.main-content {
+        margin-left: 0;
+    }
+    .table-container {
+        margin: 16px;
+    }
+}

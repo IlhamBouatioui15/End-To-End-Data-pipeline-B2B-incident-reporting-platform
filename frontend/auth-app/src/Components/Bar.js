@@ -56,8 +56,10 @@ const Bar = () => {
       <div className="sidebar">
         {isOpen && (
           <div className="sidebar-header">
-            <h3>Orange <img src={orange} alt ="logo" className='logo'></img></h3>
-            
+            <h3>
+                <span>TAM Platform</span>
+                <img src={orange} alt="logo" className="logo" />
+            </h3>
           </div>
         )}
 
