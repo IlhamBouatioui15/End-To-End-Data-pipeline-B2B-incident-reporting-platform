@@ -115,8 +115,11 @@ json_df = kafka_stream.select(
 ).select("data.*")
 
 
-# Application du filtre "Clos" et nettoyage
-final_df = json_df.filter(F.trim(F.col("etat")) == "Clos").select(
+# Application du filtre "Clos" et "Clos pour tableaux de bord" et nettoyage
+final_df = json_df.filter(
+    (F.trim(F.col("etat")) == "Clos") | 
+    (F.trim(F.col("etat")) == "Clos pour tableaux de bord")
+).select(
     "numero_ticket", 
     "etat",
     parse_timestamp("date_debut_ticket").alias("date_debut_ticket"),

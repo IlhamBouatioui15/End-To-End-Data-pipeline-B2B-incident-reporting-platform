@@ -30,6 +30,10 @@ x-airflow-common: &airflow-common
     KAFKA_SERVER: kafka:29092
     DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-tam_db}@postgres:5432/${DB_NAME:-brise_db}
     MINIO_ENDPOINT: http://minio:9000
+    AIRFLOW__METRICS__STATSD_ON: 'True'
+    AIRFLOW__METRICS__STATSD_HOST: 'statsd-exporter'
+    AIRFLOW__METRICS__STATSD_PORT: '8125'
+    AIRFLOW__METRICS__STATSD_PREFIX: 'airflow'
   volumes:
     - ./data_pipeline/airflow/dags:/opt/airflow/dags          # Tes DAGs Python
     - ./data_pipeline/airflow/logs:/opt/airflow/logs          # Logs des exécutions
@@ -107,6 +111,7 @@ services:
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
     command: server /data --console-address ":9001"
     networks:
       - tam_network
@@ -181,7 +186,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "--fail", "http://10.139.118.172:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -235,6 +240,7 @@ services:
     container_name: tam_spark_master
     environment:
       - SPARK_MODE=master
+      - SPARK_MASTER_OPTS=-Dspark.ui.prometheus.enabled=true -Dspark.metrics.conf.*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet -Dspark.metrics.conf.*.sink.prometheusServlet.path=/metrics/prometheus
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -251,11 +257,15 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_OPTS=-Dspark.ui.prometheus.enabled=true -Dspark.metrics.conf.*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet -Dspark.metrics.conf.*.sink.prometheusServlet.path=/metrics/prometheus
+    ports:
+      - "8081:8081"
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
       - spark-master
     networks:
       - tam_network
+    
 
   backend:
     build:
@@ -265,7 +275,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-tam_db}@postgres:5432/${DB_NAME:-brise_db}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-sJvJJBTG9IoNngjzingJUqVDXkecpA6SXorGIP4zoQ4}
-      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      BASE_URL: ${BASE_URL:-http://10.139.118.172}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -314,6 +324,8 @@ services:
       - SUPERSET_SECRET_KEY=d5fb956be07f6c6956199f8b7718be0524c55e218b2d92919d9ed3514f2bae24
       - DATABASE_URL=postgresql+psycopg2://superset:tam__db@superset-db:5432/superset_meta
       - SUPERSET_WEBSERVER_PORT=8088
+      - STATSD_HOST=statsd-exporter
+      - STATSD_PORT=8125
     ports:
       - "8088:8088"
     depends_on:
@@ -340,12 +352,76 @@ services:
         superset run -h 0.0.0.0 -p 8088 --with-threads
       "
 
+  # ============================================================
+  # MONITORING & OBSERVABILITY (Prometheus, Grafana, Exporters)
+  # ============================================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tam_prometheus
+    volumes:
+      - ./data_pipeline/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    networks:
+      - tam_network
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tam_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data_pipeline/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - tam_network
+    restart: always
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: tam_kafka_exporter
+    command: ["--kafka.server=kafka:29092"]
+    ports:
+      - "9308:9308"
+    networks:
+      - tam_network
+    restart: always
+
+  statsd-exporter:
+    image: prom/statsd-exporter:latest
+    container_name: tam_statsd_exporter
+    command:
+      - "--statsd.mapping-config=/tmp/statsd_mapping.yml"
+      - "--statsd.listen-udp=:8125"
+      - "--web.listen-address=:9102"
+    volumes:
+      - ./data_pipeline/monitoring/statsd/statsd_mapping.yml:/tmp/statsd_mapping.yml:ro
+    ports:
+      - "9102:9102"
+      - "8125:8125/udp"
+    networks:
+      - tam_network
+    restart: always
+
 volumes:
   postgres_data:
   frontend_data:
   superset_db_data:   
   superset_home:
   airflow_db_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   tam_network:

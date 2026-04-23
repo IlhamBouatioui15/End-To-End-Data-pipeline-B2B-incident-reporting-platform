@@ -16,23 +16,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import orange from "./GIFORANGE3.gif"
 
 
+import { ROLES } from '../constants/roles';
+
 const Bar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState('Accueil');
   const navigate = useNavigate();
+  const userRole = localStorage.getItem('role');
 
   const menuItems = [
-    
-    { name: 'Membres', icon: <FaAddressBook /> , path: '/Members'},
+    { name: 'Membres', icon: <FaAddressBook /> , path: '/Members', roles: [ROLES.ADMIN] },
     { 
       name: 'Rapports', 
       icon: <TbReportSearch />,
       path:'/excels'
     },
     { name: 'Fichiers Excel', icon: <FaBox />, path: '/fichiers-excel' },
-
     { name: 'Autre', icon: <FaCalendarAlt /> },
-  ];
+  ].filter(item => !item.roles || item.roles.includes(userRole));
 
   const bottomItems = [
    

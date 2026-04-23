@@ -1,16 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Panel de Validation des Modifications</title>
-</head>
-<body>
-    <h1>Modifications en attente</h1>
-    <p>Total: {{ modifications|length }} modification(s)</p>
-    <ul>
-    {% for mod in modifications %}
-  <!DOCTYPE html>
-<html>
-<head>
     <title>Panel Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -27,39 +17,38 @@
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <h2 class="text-xl font-semibold">Modification #{{ mod.id }}</h2>
-                    <p class="text-gray-600 text-sm">
-                       
-                        Par <span class="font-medium">{{ mod.utilisateur }}</span> • 
-                        {{ mod.date_creation }}
+                    <p class="text-gray-600 text-sm mt-1">
+                        Demandée par <span class="font-medium">{{ mod.utilisateur }}</span> •
+                        Ticket concerné: <span class="font-medium">{{ mod.numero_ticket }}</span>
                     </p>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="validateModification('{{ mod.id }}')" 
-                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-medium shadow-sm transition">
                         Valider
                     </button>
                     <button onclick="rejectModification('{{ mod.id }}')" 
-                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-medium shadow-sm transition">
                         Rejeter
                     </button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white border">
-                    <thead class="bg-gray-50">
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="py-2 px-4 border">Champ</th>
-                            <th class="py-2 px-4 border">Ancienne valeur</th>
-                            <th class="py-2 px-4 border">Nouvelle valeur</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Champ</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Ancienne valeur</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Nouvelle valeur</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100">
                         {% for change in mod.changes %}
-                        <tr>
-                            <td class="py-2 px-4 border">{{ change.field }}</td>
-                            <td class="py-2 px-4 border">{{ change.old }}</td>
-                            <td class="py-2 px-4 border">{{ change.new }}</td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-4 text-sm text-gray-800">{{ change.field }}</td>
+                            <td class="py-3 px-4 text-sm text-red-600 line-through">{{ change.old }}</td>
+                            <td class="py-3 px-4 text-sm text-green-600 font-medium">{{ change.new }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -71,44 +60,42 @@
 
     <script>
     async function validateModification(id) {
-    try {
-        const response = await fetch(`/valider_modification/${id}`, { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const result = await response.json();
-        if (response.ok) {
-            alert(result.message);
-            location.reload();
-        } else {
-            alert(`Erreur: ${result.detail}`);
+        try {
+            const response = await fetch(`/valider_modification/${id}`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert(`Erreur: ${result.detail}`);
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            alert("Erreur lors de la validation");
         }
-    } catch (error) {
-        console.error("Erreur:", error);
-        alert("Erreur lors de la validation");
     }
-}
 
     async function rejectModification(id) {
+        if (!confirm("Voulez-vous vraiment rejeter cette modification ?")) return;
+        
         try {
             const response = await fetch(`/rejeter-modification/${id}`, { method: 'POST' });
             if (response.ok) {
                 alert("Rejeté avec succès !");
                 location.reload();
+            } else {
+                const text = await response.text();
+                alert(`Erreur lors du rejet: ${text}`);
             }
         } catch (error) {
             console.error("Erreur:", error);
+            alert("Une erreur technique est survenue.");
         }
     }
     </script>
-</body>
-</html>      <li>
-            <strong>ID:</strong> {{ mod.id }}<br>
-            <strong>Utilisateur:</strong> {{ mod.utilisateur }}<br>
-            <strong>Ticket:</strong> {{ mod.numero_ticket }}
-        </li>
-    {% endfor %}
-    </ul>
 </body>
 </html>

@@ -38,16 +38,16 @@ const ExcelPage = () => {
   // Filtrage des données mémorisé pour optimiser les performances
   const filteredData = useMemo(() => {
     if (!data.length) return [];
-    
+
     return data.filter(row => {
       return columns.every(col => {
         const filterValue = filters[col];
         if (!filterValue) return true;
-        
-        const cellValue = row[col] !== null && row[col] !== undefined 
-          ? String(row[col]).toLowerCase() 
+
+        const cellValue = row[col] !== null && row[col] !== undefined
+          ? String(row[col]).toLowerCase()
           : "";
-          
+
         return cellValue.includes(filterValue.toLowerCase());
       });
     });
@@ -56,12 +56,12 @@ const ExcelPage = () => {
   return (
     <div className="excel-page">
       <Bar />
-      
+
       <main className="excel-main main-content">
         <header className="excel-header-section">
-          <h2>Fichier Excel Collaboratif</h2>
+          <h2>Brise</h2>
         </header>
-        
+
         <div className="table-container">
           {loading ? (
             <div className="loading-overlay">

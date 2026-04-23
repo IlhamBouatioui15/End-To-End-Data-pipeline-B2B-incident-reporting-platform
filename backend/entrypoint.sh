@@ -95,6 +95,18 @@ init_admin_user() {
     fi
 }
 
+sync_frontend_build() {
+    local source_dir="/app/frontend_dist"
+    local target_dir="/app/frontend/build"
+
+    if [ -d "$source_dir" ]; then
+        echo -e "${YELLOW}Synchronisation du build frontend...${NC}"
+        mkdir -p "$target_dir"
+        cp -a "$source_dir"/. "$target_dir"/
+        echo -e "${GREEN}Build frontend synchronise${NC}"
+    fi
+}
+
 #run_custom_init() {
 #    local init_file="/app/backend/auto_import.py"
 #   if [ -f "$init_file" ]; then
@@ -122,6 +134,7 @@ main() {
     
     # Étape 4: Créer l'admin (Appel de la nouvelle fonction)
     init_admin_user
+    sync_frontend_build
     
     # Étape 5: Autres inits si besoin
     #run_custom_init

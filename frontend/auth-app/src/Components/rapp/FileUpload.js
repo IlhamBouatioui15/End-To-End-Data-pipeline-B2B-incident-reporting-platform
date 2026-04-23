@@ -24,16 +24,15 @@ const PERIOD_OPTIONS = [
   { value: 'T4', label: 'T4' },
   { value: 'S1', label: 'S1' },
   { value: 'S2', label: 'S2' },
-  { value: 'Annee', label: 'Annee' },
 ];
 
 const isChartPayload = (payload) =>
   Boolean(
     payload &&
-      Array.isArray(payload.labels) &&
-      payload.labels.length > 0 &&
-      Array.isArray(payload.datasets) &&
-      payload.datasets.length > 0
+    Array.isArray(payload.labels) &&
+    payload.labels.length > 0 &&
+    Array.isArray(payload.datasets) &&
+    payload.datasets.length > 0
   );
 
 const normalizeMonthToken = (value) =>
@@ -127,10 +126,10 @@ const sortChartByMonth = (chartData) => {
 
 const FileUpload = ({
   setGraphsData,
-  setRawData = () => {},
-  setSelectedClient = () => {},
-  onLoadStart = () => {},
-  onError = () => {},
+  setRawData = () => { },
+  setSelectedClient = () => { },
+  onLoadStart = () => { },
+  onError = () => { },
 }) => {
   const [columns, setColumns] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
@@ -173,8 +172,8 @@ const FileUpload = ({
       setLoadingOptions(true);
       try {
         const [yearsResponse, clientsResponse] = await Promise.all([
-          axios.get('http://localhost:8000/get-years'),
-          axios.get('http://localhost:8000/get-clients'),
+          axios.get('http://10.139.118.172:8000/get-years'),
+          axios.get('http://10.139.118.172:8000/get-clients'),
         ]);
 
         setAvailableYears(yearsResponse?.data?.years || []);
@@ -213,7 +212,7 @@ const FileUpload = ({
     setIsLoading(true);
     try {
       const params = buildParamsQuery();
-      const response = await fetch(`http://localhost:8000/raw-data?${params.toString()}`);
+      const response = await fetch(`http://10.139.118.172:8000/raw-data?${params.toString()}`);
       const result = await response.json();
 
       setRawData(result?.data || []);
@@ -265,7 +264,7 @@ const FileUpload = ({
       }
 
       const response = await axios.post(
-        'http://localhost:8000/enregistrer-modification',
+        'http://10.139.118.172:8000/enregistrer-modification',
         { modifications: modifiedRows },
         {
           headers: {
@@ -294,7 +293,7 @@ const FileUpload = ({
   const handleDownloadExcel = async () => {
     try {
       const params = buildParamsQuery();
-      const response = await fetch(`http://localhost:8000/export-excel?${params.toString()}`);
+      const response = await fetch(`http://10.139.118.172:8000/export-excel?${params.toString()}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -323,7 +322,7 @@ const FileUpload = ({
       const results = await Promise.all(
         ANALYSIS_ENDPOINTS.map((endpoint) =>
           axios
-            .get(`http://localhost:8000/graph/${endpoint}`, { params })
+            .get(`http://10.139.118.172:8000/graph/${endpoint}`, { params })
             .then((res) => ({ endpoint, ok: true, data: res.data }))
             .catch((err) => ({
               endpoint,

@@ -41,8 +41,24 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Charger les variables d'environnement depuis le fichier .env
 DATABASE_URL = os.getenv("DATABASE_URL")
+ADMIN_SECRET_TOKEN = os.getenv("ADMIN_SECRET_TOKEN")
+
 
 from contextlib import asynccontextmanager
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+
+# Configuration simplifiée et robuste
+conf = ConnectionConfig(
+    MAIL_USERNAME=os.getenv("SMTP_USERNAME"),
+    MAIL_PASSWORD=os.getenv("SMTP_PASSWORD"),
+    MAIL_FROM=os.getenv("SMTP_USERNAME"),
+    MAIL_PORT=587,
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True
+)
 
 
 def get_psycopg2_connection():
@@ -329,7 +345,7 @@ async def generate_graph_from_db(
     graph_type: str,
     client: str,
     annees: List[int] = Query(..., alias="annees[]"),
-    trimestre: List[str] = Query(..., alias="trimestre[]")
+    trimestre: Optional[List[str]] = Query(None, alias="trimestre[]")
 ):
     """Endpoint principal pour générer les graphiques à partir de la base de données"""
     try:
@@ -337,6 +353,9 @@ async def generate_graph_from_db(
             raise HTTPException(status_code=400, detail="Vous devez sélectionner au moins une année")
 
         # Chargement des données depuis la base
+        if not trimestre:
+            trimestre = ["Annee"]
+
         df = load_data_from_db(client=client, annees=annees)
         if df.empty:
             raise HTTPException(status_code=404, detail="Aucune donnée trouvée pour les critères sélectionnés")
@@ -369,6 +388,8 @@ async def generate_graph_from_db(
 
         return JSONResponse(content=data)
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -518,7 +539,7 @@ async def save_modifications(
             return {"status": "success", "message": f"{direct_updates_count} modification(s) appliquées directement."}
         else:
             if modifications_pending:
-                background_tasks.add_task(send_validation_email, modifications_pending)
+                background_tasks.add_task(send_validation_email_robust, modifications_pending)
             return {"status": "success", "message": f"{len(modifications_pending)} modification(s) en attente de validation."}
 
     except Exception as e:
@@ -585,10 +606,14 @@ class Modification(BaseModel):
 @app.get("/modifications-pending", response_class=HTMLResponse)
 def get_pending_modifications(request: Request):
     modifications = fetch_modifications_from_db()
-    return templates.TemplateResponse("admin_panel_validation.html", {
-        "request": request,
-        "modifications": modifications
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_panel_validation.html",
+        context={
+            "request": request,
+            "modifications": modifications
+        }
+    )
 
   
 @app.post("/valider_modification/{modification_id}")
@@ -708,11 +733,71 @@ def rejeter_modification(modification_id: int):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
- 
+
+
+async def send_validation_email_robust(modifications: list):
+    try:
+        if not ADMIN_EMAIL:
+            print("❌ Erreur: ADMIN_EMAIL non configuré")
+            return
+
+        # Construction du HTML (Identique à votre logique actuelle)
+        modifications_html = ""
+        for mod in modifications:
+            # ... (votre boucle de construction de table_rows reste la même)
+            table_rows = ""
+            for field_name, old_value in mod['old_row'].items():
+                new_value = mod['new_row'].get(field_name)
+                if str(old_value) != str(new_value):
+                    table_rows += f"""
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{field_name}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{old_value}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; color: #FF7A01; font-weight: bold;">{new_value}</td>
+                    </tr>"""
+            
+            modifications_html += f"""
+            <div style="margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                <h3>Modification #{mod['id']} par {mod['user']}</h3>
+                <p><strong>Ticket:</strong> {mod['old_row'].get('numero_ticket', 'N/A')}</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f5f5f5;">
+                        <th>Champ</th><th>Ancien</th><th>Nouveau</th>
+                    </tr>
+                    {table_rows}
+                </table>
+            </div>"""
+
+        body = f"""<html><body>
+            <h2>Validation Requise</h2>
+            {modifications_html}
+            <br>
+            <a href="{os.getenv('BASE_URL', 'http://10.139.118.172:8000')}/admin/validation" 
+               style="background-color: #FF7A01; color: white; padding: 10px; text-decoration: none; border-radius: 5px;">
+               Accéder au panel de validation
+            </a>
+        </body></html>"""
+
+        # Création du message
+        message = MessageSchema(
+            subject=f"⚠️ {len(modifications)} modification(s) en attente de validation",
+            recipients=[ADMIN_EMAIL],
+            body=body,
+            subtype=MessageType.html
+        )
+
+        fm = FastMail(conf)
+        await fm.send_message(message)
+        print(f"✅ Email de validation envoyé avec succès à {ADMIN_EMAIL}")
+
+    except Exception as e:
+        print(f"❌ Erreur CRITIQUE envoi email: {str(e)}")
+        # Optionnel: logger l'erreur dans un fichier ou une table de log DB
+
 def send_validation_email(modifications: list):
     try:
         subject = f"[Validation Requise] {len(modifications)} modification(s) en attente"
-        base_url = os.getenv("BASE_URL", "http://localhost:8000")
+        base_url = os.getenv("BASE_URL", "http://10.139.118.172:8000")
         admin_panel_url = f"{base_url}/admin/validation"
         
         modifications_html = ""
@@ -801,8 +886,9 @@ async def admin_panel(request: Request):
         modifications = fetch_modifications_from_db()  # Utilisez votre fonction existante
         
         return templates.TemplateResponse(
-            "admin_panel_validation.html",
-            {"request": request, "modifications": modifications}
+            request=request,
+            name="admin_panel_validation.html",
+            context={"request": request, "modifications": modifications}
         )
     except Exception as e:
         print(PathLibPath(__file__).parent / "templates/admin_panel_validation.html")  # Devrait afficher le bon chemin absolu

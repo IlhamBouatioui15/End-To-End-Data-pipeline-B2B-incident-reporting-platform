@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import GIFORANGE from "./GIFORANGE3.gif"
@@ -10,6 +10,10 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Plateforme Reporting B2B';
+  }, []);
 
   const validateForm = () => {
     if (!username || !password) {
@@ -44,6 +48,7 @@ function Login() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.access_token);
+        localStorage.setItem('role', data.role);
         navigate('/excels');
       } else {
         const errorData = await response.json();
@@ -71,7 +76,7 @@ function Login() {
           <h2 className="greeting-text">Bienvenue !</h2>
           <h1 className="main-platform-text">
             PLATEFORME<br />
-            B2B INCIDENTS
+            REPORTING B2B 
           </h1>
         </div>
 

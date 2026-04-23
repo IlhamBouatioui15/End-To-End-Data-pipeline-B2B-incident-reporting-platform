@@ -7,14 +7,19 @@ import orangeLogo from './OIP.jpg';
 import coverImage from '../capture.png';
 
 const OG = {
-  orange: '#FF7900',
-  orangeDark: '#CC5C00',
-  black: '#1A1A1A',
+  orange: '#FF7A01',
+  orangeDark: '#C15C00',
+  black: '#000000',
   white: '#FFFFFF',
   gray1: '#F4F4F4',
   gray2: '#E8E8E8',
-  gray3: '#999999',
+  gray3: '#7A7A7A',
   text: '#333333',
+  blue: '#34B1E2',
+  green: '#52BD84',
+  pink: '#FFB4E5',
+  purple: '#A482D9',
+  yellow: '#FFCE00',
 };
 
 const GRAPH_TITLES = {
@@ -35,7 +40,7 @@ const GRAPH_TYPES = {
   evolution_globale_data: 'bar',
   evolution_criticite_data: 'stackedbar',
   distribution_criticite_data: 'pie',
-  EvResp_data: 'bar',
+  EvResp_data: 'stackedbar',
   DistResp_data: 'pie',
   ServImpact_data: 'pie',
   NivTait_data: 'pie',
@@ -59,17 +64,17 @@ const NAV_ITEMS = [
 ];
 
 const SLIDES_PLAN = [
-  { graphNames: ['evolution_globale_data'], title: 'Analyse de levolution globale', layout: 'single' },
-  { graphNames: ['evolution_criticite_data', 'distribution_criticite_data'], title: 'Analyse de la criticite', layout: 'double' },
-  { graphNames: ['EvResp_data', 'DistResp_data'], title: 'Repartition des responsabilites', layout: 'double' },
-  { graphNames: ['ServImpact_data', 'NivTait_data'], title: 'Services et traitement', layout: 'double' },
-  { graphNames: ['TauxResGTR_data'], title: 'Indicateurs de qualite GTR', layout: 'single' },
+  { graphNames: ['evolution_globale_data'], title: 'Analyse de l\'évolution globale', layout: 'single' },
+  { graphNames: ['evolution_criticite_data', 'distribution_criticite_data'], title: 'Analyse de la criticité', layout: 'double' },
+  { graphNames: ['EvResp_data', 'DistResp_data'], title: 'Répartition des responsabilités', layout: 'double' },
+  { graphNames: ['ServImpact_data', 'NivTait_data'], title: 'Services et niveaux de traitement', layout: 'double' },
+  { graphNames: ['TauxResGTR_data'], title: 'Indicateurs de qualité GTR', layout: 'single' },
   { graphNames: ['IncidentResGTR_data'], title: 'Liste des incidents hors GTR', layout: 'full' },
-  { graphNames: ['TopSitesRec_data'], title: 'Analyse des sites recurrents', layout: 'single' },
-  { graphNames: ['top_problemes_recurrents_data'], title: 'Analyse des problemes recurrents', layout: 'single' },
+  { graphNames: ['TopSitesRec_data'], title: 'Analyse des sites récurrents', layout: 'single' },
+  { graphNames: ['top_problemes_recurrents_data'], title: 'Analyse des problèmes récurrents', layout: 'single' },
 ];
 
-const FALLBACK_COLORS = ['FF7900', 'CC5C00', 'F16E00', 'FF9E44', 'FFCC88', 'E65C00'];
+const FALLBACK_COLORS = ['34B1E2', '52BD84', 'FFB4E5', 'A482D9', 'FFCE00', '7A7A7A'];
 
 const isChartData = (payload) =>
   Boolean(
@@ -124,37 +129,79 @@ const hasValidSeries = (series) =>
   );
 
 const buildChartSeriesForPpt = (chartData, chartType) => {
-  const labels = (chartData.labels || []).map((l) => String(l));
-  const labelsCount = labels.length;
+  const baseLabels = (chartData.labels || []).map((l) => String(l));
+  const baseLabelsCount = baseLabels.length;
 
   if (chartType === 'pie') {
     const ds = chartData.datasets[0] || {};
-    const values = dataToNumbers(ds.data).slice(0, labelsCount);
-    while (values.length < labelsCount) values.push(0);
-
+    const values = dataToNumbers(ds.data).slice(0, baseLabelsCount);
+    while (values.length < baseLabelsCount) values.push(0);
     const safeValues = values.some((v) => v > 0) ? values : values.map((_, i) => (i === 0 ? 1 : 0));
-
-    return [
-      {
-        name: ds.label || 'Donnees',
-        labels,
-        values: safeValues,
-      },
-    ];
+    return [{ name: ds.label || 'Donnees', labels: baseLabels, values: safeValues }];
   }
 
-  return chartData.datasets
-    .map((ds, idx) => {
-      const values = dataToNumbers(ds.data).slice(0, labelsCount);
-      while (values.length < labelsCount) values.push(0);
+  // Détection des années (stacks) uniques
+  const years = Array.from(new Set(chartData.datasets.map(ds => ds.stack).filter(Boolean))).sort();
+  const numYears = years.length;
+
+  // Si on a plusieurs années, on intercale pour avoir des colonnes empilées côte à côte
+  if (numYears > 1 && chartType !== 'horizontalBar') {
+    const interleavedLabels = [];
+    baseLabels.forEach(label => {
+      years.forEach(year => {
+        // Label court ex: Jan (23) pour gagner de l'espace
+        const shortYear = year.slice(-2);
+        interleavedLabels.push(`${label} (${shortYear})`);
+      });
+    });
+
+    const categories = Array.from(new Set(chartData.datasets.map(ds => ds.label))).filter(Boolean);
+
+    return categories.map(cat => {
+      const interleavedValues = new Array(interleavedLabels.length).fill(0);
+
+      chartData.datasets.forEach(ds => {
+        if (ds.label === cat) {
+          const yearIdx = years.indexOf(ds.stack);
+          if (yearIdx !== -1) {
+            const vals = dataToNumbers(ds.data);
+            vals.forEach((v, i) => {
+              if (i < baseLabelsCount) {
+                interleavedValues[i * numYears + yearIdx] = v;
+              }
+            });
+          }
+        }
+      });
 
       return {
-        name: ds.label || `Serie ${idx + 1}`,
-        labels,
-        values,
+        name: cat,
+        labels: interleavedLabels,
+        values: interleavedValues
       };
+    });
+  }
+
+  // Fallback pour les graphiques simples ou horizontaux
+  const seenLabels = new Set();
+  return chartData.datasets
+    .map((ds, idx) => {
+      const values = dataToNumbers(ds.data).slice(0, baseLabelsCount);
+      while (values.length < baseLabelsCount) values.push(0);
+
+      const label = ds.label || `Serie ${idx + 1}`;
+      let displayName = label;
+      const isYearLabel = /^\d{4}$/.test(label.trim());
+
+      if (!isYearLabel && seenLabels.has(label)) {
+        displayName = "";
+      } else {
+        seenLabels.add(label);
+      }
+
+      return { name: displayName, labels: baseLabels, values: values };
     })
-    .filter((s) => s.values.some((v) => Number.isFinite(v)));
+    .filter(s => s.values.some(v => v !== 0) || s.name !== "");
 };
 
 const buildChartColorsForPpt = (chartData, chartType) => {
@@ -195,11 +242,11 @@ const buildIncidentTableRows = (incidentData) => {
   const preferredCols = [
     'N ticket',
     'N° ticket',
-    'numero_ticket',
     'Description',
     'Site Client',
-    'Duree de traitement (mn) OCEANE',
-    'Action de resolution',
+    'Durée de traitement (mn) OCEANE',
+    'Action de résolution',
+    'Remarque',
   ];
 
   const chosen = preferredCols.filter((c) => sourceCols.includes(c));
@@ -209,7 +256,7 @@ const buildIncidentTableRows = (incidentData) => {
     text: col,
     options: {
       bold: true,
-      fill: 'FF7900',
+      fill: 'FF7A01',
       color: 'FFFFFF',
       align: 'center',
       valign: 'middle',
@@ -218,64 +265,61 @@ const buildIncidentTableRows = (incidentData) => {
   }));
 
   const body = incidentData.map((row) =>
-    cols.map((col) => ({
-      text: tableText(row[col]),
-      options: {
-        align: col === 'Description' || col === 'Action de resolution' ? 'left' : 'center',
-        valign: 'top',
-        fontSize: 9,
-      },
-    }))
+    cols.map((col) => {
+      // Pour la colonne Remarque, on laisse vide si elle n'existe pas dans les données
+      const val = tableText(row[col] || '');
+      return {
+        text: val,
+        options: {
+          align: col === 'Description' || col === 'Action de résolution' || col === 'Remarque' ? 'left' : 'center',
+          valign: 'top',
+          fontSize: 9,
+        },
+      };
+    })
   );
 
   return [header, ...body];
 };
 
 const addSlideChrome = (slide, title, shapeType) => {
+  // MBB Style: Top thin orange line, clean white background, Action Title
   slide.addShape(shapeType.rect, {
     x: 0,
     y: 0,
     w: 13.33,
-    h: 0.58,
-    fill: { color: '1A1A1A' },
-    line: { color: '1A1A1A' },
+    h: 0.05,
+    fill: { color: 'FF7900' },
   });
 
-  try {
-    slide.addImage({ path: orangeLogo, x: 0.2, y: 0.07, w: 0.4, h: 0.4 });
-  } catch (_) {
-    // optional image
-  }
-
+  // Action Title
   slide.addText(title, {
-    x: 0.75,
-    y: 0.14,
-    w: 12.2,
-    fontSize: 15,
+    x: 0.5,
+    y: 0.2,
+    w: 11.5,
+    fontSize: 22,
     bold: true,
-    color: 'FFFFFF',
+    color: '1A1A1A',
     fontFace: 'Calibri',
+  });
+
+  // Gray sub-line for separation
+  slide.addShape(shapeType.rect, {
+    x: 0.5,
+    y: 0.7,
+    w: 12.33,
+    h: 0.01,
+    fill: { color: 'E8E8E8' },
   });
 };
 
 const addPremiumFrame = (slide, shapeType) => {
-  slide.addShape(shapeType.rect, {
-    x: 0,
-    y: 0.58,
-    w: 13.33,
-    h: 0.04,
-    fill: { color: 'FF7900' },
-    line: { color: 'FF7900' },
-  });
-
-  slide.addShape(shapeType.rect, {
-    x: 12.15,
-    y: 0.08,
-    w: 1.0,
-    h: 0.32,
-    fill: { color: 'FF7900', transparency: 15 },
-    line: { color: 'FF7900', transparency: 15 },
-  });
+  // Orange Logo in top right
+  try {
+    slide.addImage({ path: orangeLogo, x: 12.3, y: 0.15, w: 0.5, h: 0.5 });
+  } catch (_) {
+    // optional image
+  }
 };
 
 export default function Excel() {
@@ -334,10 +378,10 @@ export default function Excel() {
     try {
       const pptx = new PptxGenJS();
       pptx.layout = 'LAYOUT_WIDE';
-      pptx.author = 'Orange Business';
+      pptx.author = 'Orange Maroc';
       pptx.company = 'Orange Group';
-      pptx.subject = 'Rapport incidents ticketing';
-      pptx.title = 'Rapport incidents';
+      pptx.subject = 'Diagnostic de Performance B2B';
+      pptx.title = 'Rapport_Incidents_B2B';
       pptx.lang = 'fr-FR';
 
       const SHAPE = pptx.ShapeType;
@@ -345,199 +389,174 @@ export default function Excel() {
 
       const clientDisplay = clientLabel || 'CLIENT NON DEFINI';
 
+      // ======================================
+      // 1. COVER SLIDE (MBB "Executive" Style)
+      // ======================================
       const cover = pptx.addSlide();
-      cover.background = { color: 'F4F4F4' };
-      addSlideChrome(cover, 'Orange Maroc - Rapport Incident ', SHAPE);
-      addPremiumFrame(cover, SHAPE);
+      cover.background = { color: '1A1A1A' }; // Fond noir pur, premium
 
       cover.addShape(SHAPE.rect, {
-        x: 0,
-        y: 2.15,
-        w: 10.3,
-        h: 2.95,
-        fill: { color: 'FF7900' },
-        line: { color: 'FF7900' },
+        x: 0, y: 6.8, w: 13.33, h: 0.03, fill: { color: 'FF7900' } // Accent line
       });
 
-      cover.addText('RAPPORT DES INCIDENTS ', {
-        x: 0.75,
-        y: 3.15,
-        w: 8.5,
-        fontSize: 34,
-        bold: true,
-        color: 'FFFFFF',
-        fontFace: 'Calibri',
-      });
-
-      cover.addText(`Client : ${clientDisplay}`, {
-        x: 0.75,
-        y: 4.2,
-        w: 8.5,
-        fontSize: 20,
-        bold: true,
-        color: 'FFFFFF',
-        fontFace: 'Calibri',
+      cover.addText('Strictly Private & Confidential', {
+        x: 0.5, y: 0.3, w: 5.0, fontSize: 10, bold: true, color: '999999', fontFace: 'Calibri'
       });
 
       try {
-        cover.addImage({ path: coverImage, x: 9.45, y: 2.1, w: 3.55, h: 3.05 });
-      } catch (_) {
-        // optional image
-      }
+        cover.addImage({ path: orangeLogo, x: 12.0, y: 0.3, w: 0.8, h: 0.8 });
+      } catch (_) { }
 
-      cover.addText(new Date().toLocaleDateString('fr-FR'), {
-        x: 11.1,
-        y: 7.05,
-        w: 2.0,
-        fontSize: 10,
-        color: '666666',
-        align: 'right',
-        fontFace: 'Calibri',
+      cover.addText('Diagnostic de Performance B2B', {
+        x: 0.5, y: 2.8, w: 10.0, fontSize: 36, bold: true, color: 'FFFFFF', fontFace: 'Calibri'
       });
 
+      cover.addText(`Analyse des incidents et audit qualite pour le compte : ${clientDisplay}`, {
+        x: 0.5, y: 3.8, w: 10.0, fontSize: 18, color: '999999', fontFace: 'Calibri'
+      });
+
+      cover.addText(`Periode analysee : ${new Date().toLocaleDateString('fr-FR')} | Source : Plateforme Incidents`, {
+        x: 0.5, y: 6.2, w: 8.0, fontSize: 12, color: 'FF7900', fontFace: 'Calibri', bold: true
+      });
+
+      // ======================================
+      // 2. CONTENT SLIDES (MBB "Pyramid Principle" Layout)
+      // ======================================
       for (const { graphNames, title, layout } of SLIDES_PLAN) {
         const slide = pptx.addSlide();
-        slide.background = { color: 'F4F4F4' };
-        addSlideChrome(slide, title, SHAPE);
+        slide.background = { color: 'FFFFFF' }; // Fond blanc pur epure
+
+        // Dynamic Action Titles (Standard MBB approach instead of generic titles)
+        let actionTitle = title;
+        if (title === 'Analyse de l\'évolution globale') actionTitle = "Tendance de l'activité : Analyse de la dynamique du volume d'incidents";
+        if (title === 'Analyse de la criticité') actionTitle = "Priorisation des enjeux : Analyse de la criticité";
+        if (title === 'Répartition des responsabilités') actionTitle = "Gouvernance opérationnelle : Audit des responsabilités et des sources d'incidents";
+        if (title === 'Services et niveaux de traitement') actionTitle = "Suivi de la disponibilité des services et performance de résolution";
+        if (title === 'Indicateurs de qualité GTR') actionTitle = "Qualité de Service (SLA) : Performance du respect de la Garantie de Temps de Rétablissement";
+        if (title === 'Liste des incidents hors GTR') actionTitle = "Analyse d'exception : Détail complet des incidents hors GTR et plans d'actions";
+        if (title === 'Analyse des sites récurrents') actionTitle = "Focus Géographique : Identification des sites clients à forte récurrence d'incidents";
+        if (title === 'Analyse des problèmes récurrents') actionTitle = "Audit Structurel : Top des typologies de problèmes impactant l'infrastructure";
+
+        addSlideChrome(slide, actionTitle, SHAPE);
         addPremiumFrame(slide, SHAPE);
 
         if (layout === 'full') {
           const rows = buildIncidentTableRows(graphsData?.IncidentResGTR_data);
           if (rows?.length > 1) {
             slide.addTable(rows, {
-              x: 0.3,
-              y: 0.85,
-              w: 12.75,
-              h: 6.45,
-              border: { type: 'solid', pt: 0.6, color: 'E0E0E0' },
+              x: 0.4, y: 1.0, w: 12.5, h: 5.8,
+              border: { type: 'solid', pt: 0.5, color: 'E8E8E8' },
               fontFace: 'Calibri',
               margin: 4,
             });
           } else {
-            slide.addText('Aucun incident hors GTR sur la periode.', {
-              x: 0.5,
-              y: 3.4,
-              w: 12.2,
-              fontSize: 16,
-              italic: true,
-              color: '333333',
-              fontFace: 'Calibri',
-              align: 'center',
+            slide.addText('Aucun incident hors GTR majeur sur la periode analysee.', {
+              x: 0.5, y: 3.4, w: 12.2, fontSize: 16, italic: true, color: '999999', fontFace: 'Calibri', align: 'center'
             });
           }
           continue;
         }
 
-        const slots =
-          layout === 'double'
-            ? [
-              { x: 0.4, y: 1.0, w: 6.0, h: 3.8, cx: 0.4, cy: 5.0, cw: 6.0 },
-              { x: 6.8, y: 1.0, w: 6.0, h: 3.8, cx: 6.8, cy: 5.0, cw: 6.0 },
-            ]
-            : [{ x: 0.4, y: 1.0, w: 12.4, h: 4.3, cx: 0.4, cy: 5.5, cw: 12.4 }];
-
-        graphNames.forEach((graphKey, index) => {
-          const slot = slots[index];
+        const addChartSafely = (graphKey, slot, showLegend, isPie, isStacked, isHoriz) => {
           const graphData = graphsData[graphKey];
           const chartType = GRAPH_TYPES[graphKey];
+          if (!isChartData(graphData)) return;
 
-          if (slot && isChartData(graphData)) {
-            const chartData = buildChartSeriesForPpt(graphData, chartType);
-            const chartColors = buildChartColorsForPpt(graphData, chartType);
-            const baseOpts = {
-              x: slot.x,
-              y: slot.y,
-              w: slot.w,
-              h: slot.h,
-              chartColors,
-              showLegend: true,
-              legendPos: 'b',
-              catAxisLabelFontSize: 10,
-              valAxisLabelFontSize: 10,
-              dataLabelFontSize: 9,
-            };
+          const chartData = buildChartSeriesForPpt(graphData, chartType);
+          const chartColors = buildChartColorsForPpt(graphData, chartType);
 
-            try {
-              if (!hasValidSeries(chartData)) {
-                throw new Error('Series invalides pour export');
-              }
+          // Nettoyage final des valeurs NaN dans les datasets pour éviter les bugs PPT
+          chartData.forEach(s => {
+            s.values = s.values.map(v => (v === null || isNaN(v)) ? 0 : v);
+          });
 
-              if (chartType === 'pie') {
-                slide.addChart(CHART.pie, chartData, {
-                  ...baseOpts,
-                  legendPos: 'r',
-                  showPercent: true,
-                  showLabel: true,
-                });
-              } else if (chartType === 'horizontalBar') {
-                slide.addChart(CHART.bar, chartData, {
-                  ...baseOpts,
-                  barDir: 'bar',
-                  barGrouping: 'clustered',
-                });
-              } else if (chartType === 'stackedbar') {
-                slide.addChart(CHART.bar, chartData, {
-                  ...baseOpts,
-                  barDir: 'col',
-                  barGrouping: 'stacked',
-                });
-              } else {
-                slide.addChart(CHART.bar, chartData, {
-                  ...baseOpts,
-                  barDir: 'col',
-                  barGrouping: 'clustered',
-                });
-              }
-            } catch (chartErr) {
-              console.error(`Erreur chart PPT (${graphKey}):`, chartErr);
-              slide.addShape(SHAPE.rect, {
-                x: slot.x,
-                y: slot.y,
-                w: slot.w,
-                h: slot.h,
-                fill: { color: 'FFFFFF' },
-                line: { color: 'E1E1E1' },
-              });
-              slide.addText('Graphique indisponible pour export', {
-                x: slot.x + 0.2,
-                y: slot.y + slot.h / 2 - 0.2,
-                w: slot.w - 0.4,
-                fontSize: 11,
-                color: '999999',
-                align: 'center',
-              });
+          const baseOpts = {
+            x: slot.x, y: slot.y, w: slot.w, h: slot.h,
+            chartColors,
+            showLegend: showLegend,
+            legendPos: 'b',
+            showTitle: false, // Clean chart
+            valAxisHidden: !isHoriz, // Hide value axes for cleaner look unless horizontal
+            catAxisLineShow: false,
+            vGridLineShow: false,
+            hGridLineShow: false,
+            showValue: true, // Show actual data labels instead of relying on grid axes
+            dataLabelFontSize: 11,
+            catAxisLabelFontSize: 11,
+            valAxisLabelFontSize: 10,
+            dataLabelColor: '1A1A1A',
+            barGap: 30, // Réduit pour élargir les barres
+            barOverlap: 0,
+            barScale: 85, // Augmenté pour des barres plus larges et "bien définies"
+          };
+
+          try {
+            if (chartType === 'pie') {
+              slide.addChart(CHART.pie, chartData, { ...baseOpts, legendPos: 'r', showPercent: true, showLabel: false });
+            } else if (chartType === 'horizontalBar' || isHoriz) {
+              slide.addChart(CHART.bar, chartData, { ...baseOpts, barDir: 'bar', barGrouping: 'clustered', valAxisHidden: false });
+            } else if (chartType === 'stackedbar' || isStacked) {
+              // On repasse en mode stacked car les labels intercalés Jan(23)/Jan(24) 
+              // permettent de séparer les années en gardant les catégories empilées.
+              slide.addChart(CHART.bar, chartData, { ...baseOpts, barDir: 'col', barGrouping: 'stacked' });
+            } else {
+              slide.addChart(CHART.bar, chartData, { ...baseOpts, barDir: 'col', barGrouping: 'clustered' });
             }
+          } catch (chartErr) {
+            console.error(`Erreur chart PPT (${graphKey}):`, chartErr);
+          }
+        };
+
+        if (layout === 'single') {
+          // Rule of thirds for maximum impact: 1/3 Executive Text, 2/3 Clean Data
+          const textSlot = { x: 0.5, y: 1.2, w: 3.5, h: 5.5 };
+          const chartSlot = { x: 4.2, y: 1.2, w: 8.6, h: 5.5 };
+
+          const graphKey = graphNames[0];
+
+          slide.addText('Executive Summary', {
+            x: textSlot.x, y: textSlot.y, w: textSlot.w, fontSize: 13, bold: true, color: 'FF7900', fontFace: 'Calibri'
+          });
+
+          // Text into MBB Bullets
+          const rawComments = comments[graphKey] || "Les indicateurs structurels revelent une dynamique stable sur la majeure partie du perimetre observe, appelant neanmoins quelques points d'attention precis.";
+          const points = rawComments.split('\n').filter(l => l.trim().length > 0).map(t => ({ text: t.trim() }));
+
+          if (points.length > 0) {
+            slide.addText(
+              points.map(p => ({ text: p.text, options: { bullet: { type: 'custom', code: '25A0', color: 'FF7900' } } })),
+              { x: textSlot.x, y: textSlot.y + 0.45, w: textSlot.w, h: 4.0, fontSize: 12, color: '333333', fontFace: 'Calibri', valign: 'top', lineSpacing: 22 }
+            );
           }
 
-          if (slot) {
-            slide.addText('Analyse :', {
-              x: slot.cx,
-              y: slot.cy,
-              w: slot.cw,
-              fontSize: 12,
-              bold: true,
-              color: 'FF7900',
-              fontFace: 'Calibri',
-            });
+          // On affiche la légende pour l'évolution globale comme demandé
+          const isGlobalEv = graphKey === 'evolution_globale_data';
+          addChartSafely(graphKey, chartSlot, isGlobalEv, GRAPH_TYPES[graphKey] === 'pie', GRAPH_TYPES[graphKey] === 'stackedbar', GRAPH_TYPES[graphKey] === 'horizontalBar');
 
-            slide.addText(comments[graphKey] || 'Aucune analyse saisie.', {
-              x: slot.cx,
-              y: slot.cy + 0.2,
-              w: slot.cw,
-              h: 1.0,
-              fontSize: 11,
-              italic: true,
-              color: '333333',
-              fontFace: 'Calibri',
-              valign: 'top',
-              wrap: true,
-            });
-          }
-        });
+        } else if (layout === 'double') {
+          // 50/50 Data split with overarching synthesis
+          const slots = [
+            { x: 0.4, y: 1.8, w: 6.0, h: 4.8 },
+            { x: 6.8, y: 1.8, w: 6.0, h: 4.8 }
+          ];
+
+          const comment1 = comments[graphNames[0]] || '';
+          const comment2 = comments[graphNames[1]] || '';
+          const combinedComment = [comment1, comment2].filter(Boolean).join(' | ') || "L'analyse correlee ci-dessous justifie l'orientation des efforts de resolution vers les segments les plus critiques.";
+
+          slide.addText("Observations cles : " + combinedComment, {
+            x: 0.5, y: 1.0, w: 12.3, fontSize: 12, color: '333333', fontFace: 'Calibri', italic: true,
+            bullet: { type: 'custom', code: '25A3', color: 'FF7900' }
+          });
+
+          graphNames.forEach((graphKey, index) => {
+            addChartSafely(graphKey, slots[index], true, GRAPH_TYPES[graphKey] === 'pie', GRAPH_TYPES[graphKey] === 'stackedbar', GRAPH_TYPES[graphKey] === 'horizontalBar');
+          });
+        }
       }
 
       const safeClient = clientDisplay.replace(/[\\/:*?"<>|]/g, '_');
-      await pptx.writeFile({ fileName: `Rapport_Incidents_${safeClient}.pptx` });
+      await pptx.writeFile({ fileName: `Rapport_Incidents_B2B_${safeClient}.pptx` });
     } catch (err) {
       console.error('Erreur PPT:', err);
       alert(`Erreur lors de la generation du PPT: ${err?.message || 'inconnue'}`);

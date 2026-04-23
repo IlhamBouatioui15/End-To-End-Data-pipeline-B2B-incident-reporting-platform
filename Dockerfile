@@ -40,6 +40,7 @@ COPY backend ./backend
 
 # Copy the built frontend from the builder stage
 COPY --from=frontend-builder /app/frontend/build ./frontend/build
+COPY --from=frontend-builder /app/frontend/build ./frontend_dist
 
 # Install a simple static file server (optional)
 RUN pip install --no-cache-dir whitenoise
